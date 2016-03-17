@@ -6,8 +6,17 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
-  "devDependencies": {},
+  "dependencies": {
+    "axios": "^0.9.1",
+    "lodash": "^3.10.1",
+    "uuid": "^2.0.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "fs-extra": "^0.26.7",
+    "mocha": "^2.4.5",
+    "proxyquire": "^1.7.4"
+  },
   "scripts": {
     "test": "mocha"
   },
