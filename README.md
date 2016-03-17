@@ -1,5 +1,7 @@
 # Common
 
+[![Build Status](https://travis-ci.org/sidekickcode/common.svg?branch=master)](https://travis-ci.org/sidekickcode/common)
+
 @sidekick/common are helpers shared by the releasable artefacts we ship - cli and main.
 
 ## Subpackages
