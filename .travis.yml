@@ -1,0 +1,9 @@
+language: node_js
+node_js:
+  - "5.5"
+  - "4.2"
+  - "iojs"
+script:
+  - git config user.email "test@example.com"
+  - git config --global user.name "Test User"
+  - npm test
