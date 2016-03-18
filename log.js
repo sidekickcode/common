@@ -12,6 +12,7 @@
 "use strict";
 var _ = require("lodash");
 var util = require("util");
+var inspect = require("util").inspect;
 var os = require('./os');
 var universal = require("./universal");
 var fs = universal.requireMain("fs");
@@ -52,7 +53,6 @@ if(!os.isPosix()){
   ensureLogPathExists();
 }
 
-var inspect = require("util").inspect;
 var pp = function(x) {
   return inspect(x, { depth: null });
 };
