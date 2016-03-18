@@ -8,7 +8,9 @@
   },
   "dependencies": {
     "axios": "^0.9.1",
+    "bluebird": "^3.3.4",
     "lodash": "^3.10.1",
+    "strip-json-comments": "^2.0.1",
     "uuid": "^2.0.1"
   },
   "devDependencies": {
