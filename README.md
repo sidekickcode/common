@@ -8,9 +8,10 @@
 
 ```sh
 os
+persistentConfig
+repoConfig
 tracking
 universal
-persistentConfig
 ```
 
 ## Installation

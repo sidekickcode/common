@@ -16,9 +16,9 @@ var CONFIG_FILENAME = '.sidekickrc';
 exports.load = function(repoPath) {
   var filePath = path.join(repoPath, CONFIG_FILENAME);
 
-  return fs.exists(filePath)
+  return fs.statAsync(filePath)
     .then(function(stat){
-      return fs.readFile(filePath, {encoding: "utf8"})
+      return fs.readFileAsync(filePath, {encoding: "utf8"})
         .then(function(contents){
           return Promise.resolve(jsonWithComments(contents));
         })
