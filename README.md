@@ -7,6 +7,7 @@
 ## Subpackages
 
 ```sh
+log
 os
 persistentConfig
 repoConfig
