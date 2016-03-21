@@ -48,11 +48,12 @@ exports.getAllAnalysers = function(repoConfig){
     return _.uniq(_.flatten(analysersForLang));
   })));
 
+  return allAnalysers;
   //make easy - array of {name: analyserName, analyserProp1: prop1Value,...}
-  var easy = _.map(allAnalysers, function(analyser){
+  /*var easy = _.map(allAnalysers, function(analyser){
     var name = Object.keys(analyser)[0];  //only 1 prop {"sidekick-eslint": {config}}
     var obj = {"name": name};
     return _.defaults(obj, analyser[name]);
   });
-  return easy;
+  return easy;*/
 };

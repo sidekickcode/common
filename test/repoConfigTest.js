@@ -24,8 +24,34 @@ describe('repoConfig', function() {
           done();
         })
     });
+
+    it('gets a list of all analysers', function(done) {
+      var pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
+      repoConfig.load(pathToTestRepo)
+          .then(function(contents){
+            var allAnalysers = repoConfig.getAllAnalysers(contents);
+            expect(allAnalysers.length).to.equal(3);
+            done();
+          }, function(err){
+            expect.fail();
+            done();
+          })
+    });
+
+    it('gets a list of analysers by language', function(done) {
+      var pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
+      repoConfig.load(pathToTestRepo)
+          .then(function(contents){
+            var analysersByLang = contents.languages;
+            expect(analysersByLang.length).to.equal(2);
+            done();
+          }, function(err){
+            expect.fail();
+            done();
+          })
+    });
   });
 
   describe('negative tests', function() {
-  })
+  });
 });
