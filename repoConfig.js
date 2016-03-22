@@ -19,20 +19,20 @@ exports.load = function(repoPath) {
   var filePath = path.join(repoPath, CONFIG_FILENAME);
 
   return fs.statAsync(filePath)
-    .then(function(stat){
-      return fs.readFileAsync(filePath, {encoding: "utf8"})
-        .then(function(contents){
-	  var contentObj = jsonWithComments(contents);
-	  var validator = new Validator();
-	  var validationResult = validator.validate(contentObj, jsonSchema);
-	  if(validationResult.errors.length > 0){
-	    return Promise.reject('Json parsing error(s) for .sidekickrc');
-	  }
-	  return Promise.resolve(contentObj);
-        })
-    }, function(err){
-      return Promise.reject(Error('.sidekickrc file not found in \'' + repoPath + '\''));
-    })
+      .then(function(stat){
+        return fs.readFileAsync(filePath, {encoding: "utf8"})
+            .then(function(contents){
+              var contentObj = jsonWithComments(contents);
+              var validator = new Validator();
+              var validationResult = validator.validate(contentObj, jsonSchema);
+              if(validationResult.errors.length > 0){
+                return Promise.reject('Json parsing error(s) for .sidekickrc');
+              }
+              return Promise.resolve(contentObj);
+            })
+      }, function(err){
+        return Promise.reject(Error('.sidekickrc file not found in \'' + repoPath + '\''));
+      })
 };
 
 /**

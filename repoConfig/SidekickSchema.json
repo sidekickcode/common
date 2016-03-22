@@ -5,18 +5,18 @@
     "analyser": {
       "type": "object",
       "properties": {
-	"analyserName" : {
-	  "type": "object",
-	  "properties": {
-	    "failCiOnError": {
-	      "type": "boolean"
-	    },
-	    "version": {
-	      "type": "string"
-	    }
-	  },
-	  "required": [ "failCiOnError" ]
-	}
+        "analyserName" : {
+          "type": "object",
+          "properties": {
+            "failCiOnError": {
+              "type": "boolean"
+            },
+            "version": {
+              "type": "string"
+            }
+          },
+          "required": [ "failCiOnError" ]
+        }
       }
     }
   },
@@ -29,8 +29,8 @@
       "minItems": 0,
       "uniqueItems": true,
       "items": {
-	"type": "string",
-	"minLength": 1
+        "type": "string",
+        "minLength": 1
       }
     },
     "languages": {
