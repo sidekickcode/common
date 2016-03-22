@@ -15,7 +15,7 @@ var util = require("util");
 var inspect = require("util").inspect;
 var os = require('./os');
 var universal = require("./universal");
-var fs = universal.requireMain("fs");
+var fs = universal.isRenderer() ? universal.requireMain("fs") : require("fs");
 
 var DEBUG = 0;
 var INFO = 1;
