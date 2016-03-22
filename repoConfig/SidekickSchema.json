@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+
+  "definitions": {
+    "analyser": {
+      "type": "object",
+      "properties": {
+	"analyserName" : {
+	  "type": "object",
+	  "properties": {
+	    "failCiOnError": {
+	      "type": "boolean"
+	    },
+	    "version": {
+	      "type": "string"
+	    }
+	  },
+	  "required": [ "failCiOnError" ]
+	}
+      }
+    }
+  },
+
+  "type": "object",
+
+  "properties": {
+    "exclude": {
+      "type": "array",
+      "minItems": 0,
+      "uniqueItems": true,
+      "items": {
+	"type": "string",
+	"minLength": 1
+      }
+    },
+    "languages": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/analyser" }
+    }
+  },
+  "required": [
+    "exclude",
+    "languages"
+  ]
+}
