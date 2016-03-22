@@ -1,24 +1,24 @@
 {
   "name": "@sidekick/common",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "helpers shared by the releasable artefacts we ship - cli and main.",
   "main": "sidekick-common.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
-    "axios": "^0.9.1",
-    "bluebird": "^3.3.4",
-    "lodash": "^3.10.1",
-    "strip-json-comments": "^2.0.1",
-    "uuid": "^2.0.1"
+    "axios": "~0.9.1",
+    "bluebird": "~2.9.14",
+    "lodash": "~3.10.1",
+    "strip-json-comments": "~2.0.1",
+    "uuid": "~2.0.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "chai-as-promised": "^5.2.0",
-    "fs-extra": "^0.26.7",
-    "mocha": "^2.4.5",
-    "proxyquire": "^1.7.4"
+    "chai-as-promised": "~5.2.0",
+    "fs-extra": "~0.26.7",
+    "mocha": "~2.4.5",
+    "proxyquire": "~1.7.4"
   },
   "scripts": {
     "test": "mocha"
