@@ -17,7 +17,8 @@ describe('repoConfig', function() {
       repoConfig.load(pathToTestRepo)
         .then(function(contents){
           expect(contents.exclude.length).to.equal(9);
-          expect(contents.languages.length).to.equal(2);
+	  expect(contents.languages.js).to.be.an('object');
+	  expect(contents.languages.cs).to.be.an('object');
           done();
         }, function(err){
           expect.fail();
@@ -38,18 +39,6 @@ describe('repoConfig', function() {
           })
     });
 
-    it('gets a list of analysers by language', function(done) {
-      var pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
-      repoConfig.load(pathToTestRepo)
-          .then(function(contents){
-            var analysersByLang = contents.languages;
-            expect(analysersByLang.length).to.equal(2);
-            done();
-          }, function(err){
-            expect.fail();
-            done();
-          })
-    });
   });
 
   describe('negative tests', function() {

@@ -9,6 +9,7 @@
   "dependencies": {
     "axios": "~0.9.1",
     "bluebird": "~2.9.14",
+    "jsonschema": "^1.1.0",
     "lodash": "~3.10.1",
     "strip-json-comments": "~2.0.1",
     "uuid": "~2.0.1"

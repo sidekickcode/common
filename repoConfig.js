@@ -3,6 +3,8 @@
 var Promise = require("bluebird");
 var _ = require('lodash');
 var jsonWithComments = _.compose(JSON.parse, require("strip-json-comments"));
+var Validator = require('jsonschema').Validator;
+var jsonSchema = require('./repoConfig/sidekickSchema.json');
 
 var fs = Promise.promisifyAll(require('fs'));
 var path = require('path');
@@ -20,7 +22,13 @@ exports.load = function(repoPath) {
     .then(function(stat){
       return fs.readFileAsync(filePath, {encoding: "utf8"})
         .then(function(contents){
-          return Promise.resolve(jsonWithComments(contents));
+	  var contentObj = jsonWithComments(contents);
+	  var validator = new Validator();
+	  var validationResult = validator.validate(contentObj, jsonSchema);
+	  if(validationResult.errors.length > 0){
+	    return Promise.reject('Json parsing error(s) for .sidekickrc');
+	  }
+	  return Promise.resolve(contentObj);
         })
     }, function(err){
       return Promise.reject(Error('.sidekickrc file not found in \'' + repoPath + '\''));
@@ -40,20 +48,14 @@ exports.save = function(repoPath, contents) {
 };
 
 exports.getAllAnalysers = function(repoConfig){
-  var allAnalysers = _.uniq(_.flatten(_.map(repoConfig.languages, function(lang){
-    var analysersForLang = [];
+  var allAnalysers = [];
+  _.each(repoConfig.languages, function(lang){
     _.forOwn(lang, function(value, key){
-      analysersForLang.push(value);
+      var analyser = {};
+      analyser[key] = value;
+      allAnalysers.push(analyser);
     });
-    return _.uniq(_.flatten(analysersForLang));
-  })));
+  });
 
   return allAnalysers;
-  //make easy - array of {name: analyserName, analyserProp1: prop1Value,...}
-  /*var easy = _.map(allAnalysers, function(analyser){
-    var name = Object.keys(analyser)[0];  //only 1 prop {"sidekick-eslint": {config}}
-    var obj = {"name": name};
-    return _.defaults(obj, analyser[name]);
-  });
-  return easy;*/
 };
