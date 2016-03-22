@@ -4,7 +4,7 @@ var Promise = require("bluebird");
 var _ = require('lodash');
 var jsonWithComments = _.compose(JSON.parse, require("strip-json-comments"));
 var Validator = require('jsonschema').Validator;
-var jsonSchema = require('./repoConfig/sidekickSchema.json');
+var jsonSchema = require('./repoConfig/SidekickSchema.json');
 
 var fs = Promise.promisifyAll(require('fs'));
 var path = require('path');
