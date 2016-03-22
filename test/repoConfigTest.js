@@ -1,43 +1,48 @@
 "use strict";
-var chai = require('chai');
-var assert = chai.assert;
-var expect = chai.expect;
-var chaiAsPromised = require("chai-as-promised");
+const chai = require('chai');
+const assert = chai.assert;
+const expect = chai.expect;
+const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 
-var path = require("path");
+const path = require("path");
 
-var repoConfig = require('../repoConfig');
+const repoConfig = require('../repoConfig');
 
 describe('repoConfig', function() {
 
   describe('positive tests', function() {
-    it('loads a valid config and parses the contents', function(done) {
-      var pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
-      repoConfig.load(pathToTestRepo)
-        .then(function(contents){
-          expect(contents.exclude.length).to.equal(9);
-	  expect(contents.languages.js).to.be.an('object');
-	  expect(contents.languages.cs).to.be.an('object');
-          done();
-        }, function(err){
-          expect.fail();
-          done();
-        })
-    });
+    describe('loads a valid config', function() {
 
-    it('gets a list of all analysers', function(done) {
-      var pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
-      repoConfig.load(pathToTestRepo)
+      var parsed;
+      const pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
+        
+      before(function() {
+        return repoConfig.load(pathToTestRepo)
           .then(function(contents){
-            var allAnalysers = repoConfig.getAllAnalysers(contents);
-            expect(allAnalysers.length).to.equal(3);
-            done();
-          }, function(err){
-            expect.fail();
-            done();
+            parsed = contents;
           })
-    });
+      })
+
+      it('loaded excludes', function() {
+        expect(parsed.exclude.length).to.equal(9);
+      });
+
+      it('loaded all languages', function() {
+        assert.sameMembers(Object.keys(parsed.languages), ["js", "cs"]);
+        
+      });
+
+      it('formatted analysers with name', function() {
+        assert.equal(parsed.languages.cs[0].name, "sidekick-coffeelint"); 
+      })
+
+      it('#getAllAnalysers', function() {
+        var allAnalysers = repoConfig.getAllAnalysers(parsed);
+        assert.lengthOf(allAnalysers, 3)
+      });
+    })
+
 
   });
 

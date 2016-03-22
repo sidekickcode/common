@@ -28,12 +28,24 @@ exports.load = function(repoPath) {
               if(validationResult.errors.length > 0){
                 return Promise.reject('Json parsing error(s) for .sidekickrc');
               }
-              return Promise.resolve(contentObj);
+
+
+              return Promise.resolve(reformat(contentObj));
             })
       }, function(err){
         return Promise.reject(Error('.sidekickrc file not found in \'' + repoPath + '\''));
       })
 };
+
+function reformat(content) {
+  return _.defaults({
+    languages: _.mapValues(content.languages, function(analysers) {
+      return _.map(analysers, function(config, name) {
+        return _.defaults({ name }, config);
+      })
+    }),
+  }, content);
+}
 
 /**
  * Save the .sidekickrc file and commit the modifications
@@ -51,9 +63,7 @@ exports.getAllAnalysers = function(repoConfig){
   var allAnalysers = [];
   _.each(repoConfig.languages, function(lang){
     _.forOwn(lang, function(value, key){
-      var analyser = {};
-      analyser[key] = value;
-      allAnalysers.push(analyser);
+      allAnalysers.push(value);
     });
   });
 
