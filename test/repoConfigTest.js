@@ -1,7 +1,7 @@
 "use strict";
 const path = require("path");
 
-const repoConfig = require('../RepoConfig');
+const repoConfig = require('../repoConfig');
 const pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
 const _ = require("lodash");
 
