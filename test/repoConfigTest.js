@@ -1,15 +1,14 @@
 "use strict";
 const path = require("path");
 
-const RepoConfig = require('../RepoConfig');
+const repoConfig = require('../RepoConfig');
 const pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
 const _ = require("lodash");
 
 describe('RepoConfig', function() {
 
   it('works with empty input without throwing', function() {
-    new RepoConfig;
-    new RepoConfig("");
+    repoConfig.fromString("");
   })
 
   it('filters paths', function() {
@@ -23,7 +22,7 @@ describe('RepoConfig', function() {
       "vendor/node/bin/node",
     ];
 
-    var filtered = new RepoConfig().includedPaths(paths, "py");
+    var filtered = repoConfig.fromString("{}").includedPaths(paths, "py");
 
     assert.deepEqual(filtered, ["qp_xml.py"]);
   })
@@ -37,7 +36,7 @@ describe('RepoConfig', function() {
       "/vendor/node/bin/node",
     ];
 
-    var filtered = new RepoConfig().includedPaths(paths, "js");
+    var filtered = repoConfig.fromString("{}").includedPaths(paths, "js");
 
     assert.deepEqual(filtered, []);
   })
@@ -45,7 +44,7 @@ describe('RepoConfig', function() {
   it('gives access to analysers', function() {
 
     const jshint = { name: "jshint" };
-    var conf = new RepoConfig(JSON.stringify({
+    var conf = repoConfig.fromString(JSON.stringify({
       languages: {
         js: {
           jshint: jshint,
@@ -61,7 +60,7 @@ describe('RepoConfig', function() {
   describe('loaded from file', function() {
     var config;
     before(function() {
-      return RepoConfig.load(pathToTestRepo)
+      return repoConfig.load(pathToTestRepo)
         .then(function(_config){
           config = _config;
         })

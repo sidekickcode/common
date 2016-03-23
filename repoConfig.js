@@ -12,6 +12,7 @@ var path = require('path');
 
 var CONFIG_FILENAME = '.sidekickrc';
 
+// TODO add gitignore to excludes
 
 /**
  * Load config data from .sidekickrc file
@@ -21,7 +22,8 @@ exports.load = function(repoPath) /*: RepoConfig */ {
   var filePath = path.join(repoPath, CONFIG_FILENAME);
 
   return fs.readFileAsync(filePath, {encoding: "utf8"})
-  .then((content) => RepoConfig(parse(content || "{}")))
+  .then(exports.fromString)
+  // TODO fallback to default
   .catch(function(err){
     return Promise.reject(Error(`.sidekickrc could not be loaded at '${repoPath}': ${err.stack}`));
   })
@@ -39,8 +41,15 @@ exports.save = function(repoPath, contents) {
   return fs.writeFile(filePath, contentsAsString)
 };
 
+exports.fromString = (content) => RepoConfig(parse(content || "{}"));
+
 // value object - immutable
-function RepoConfig(conf) {
+function RepoConfig(conf /*: RawConfig */) {
+  conf = _.extend({
+    exclude: [],
+    languages: {},
+  }, conf);
+
   return {
     includedPaths(paths, language) {
       // TODO probably faster to | together, not sure right now
@@ -79,6 +88,15 @@ function RepoConfig(conf) {
       return _.flatten(_.values(conf.languages));
     },
   };
+}
+
+// if we're missing a .sidekickrc, we do the 'right thing' as far as possible
+function getDefault() /*: RawConfig */ {
+
+  // TODO get list of analysers from HTTP
+  // TODO read gitignore
+  // TODO create a raw config and return
+  
 }
 
 function parse(string) {
