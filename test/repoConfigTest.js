@@ -1,51 +1,77 @@
 "use strict";
-const chai = require('chai');
-const assert = chai.assert;
-const expect = chai.expect;
-const chaiAsPromised = require("chai-as-promised");
-chai.use(chaiAsPromised);
-
 const path = require("path");
 
-const repoConfig = require('../repoConfig');
+const RepoConfig = require('../RepoConfig');
+const pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
+const _ = require("lodash");
 
-describe('repoConfig', function() {
+describe('RepoConfig', function() {
 
-  describe('positive tests', function() {
-    describe('loads a valid config', function() {
+  it('works with empty input without throwing', function() {
+    new RepoConfig;
+    new RepoConfig("");
+  })
 
-      var parsed;
-      const pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
-        
-      before(function() {
-        return repoConfig.load(pathToTestRepo)
-          .then(function(contents){
-            parsed = contents;
-          })
-      })
+  it('filters paths', function() {
 
-      it('loaded excludes', function() {
-        expect(parsed.exclude.length).to.equal(9);
-      });
+    var paths = [
+      "hn.arc",
+      "darcs.hs",
+      "stuff.lisp",
+      "qp_xml.py",
+      "iojs",
+      "vendor/node/bin/node",
+    ];
 
-      it('loaded all languages', function() {
-        assert.sameMembers(Object.keys(parsed.languages), ["js", "cs"]);
-        
-      });
+    var filtered = new RepoConfig().includedPaths(paths, "py");
 
-      it('formatted analysers with name', function() {
-        assert.equal(parsed.languages.cs[0].name, "sidekick-coffeelint"); 
-      })
+    assert.deepEqual(filtered, ["qp_xml.py"]);
+  })
 
-      it('#getAllAnalysers', function() {
-        var allAnalysers = repoConfig.getAllAnalysers(parsed);
-        assert.lengthOf(allAnalysers, 3)
-      });
+  it('does not include binaries', function() {
+
+    var paths = [
+      "vendor/node/bin/node",
+      "bin/sk",
+      "/bin/sk",
+      "/vendor/node/bin/node",
+    ];
+
+    var filtered = new RepoConfig().includedPaths(paths, "js");
+
+    assert.deepEqual(filtered, []);
+  })
+
+  it('gives access to analysers', function() {
+
+    const jshint = { name: "jshint" };
+    var conf = new RepoConfig(JSON.stringify({
+      languages: {
+        js: {
+          jshint: jshint,
+        },
+        py: {},
+      }
+    }));
+
+    assert.deepEqual(conf.analysers("js"), [jshint]);
+    assert.deepEqual(conf.analysers("py"), []);
+  })
+
+  describe('loaded from file', function() {
+    var config;
+    before(function() {
+      return RepoConfig.load(pathToTestRepo)
+        .then(function(_config){
+          config = _config;
+        })
     })
 
+    it('gives access to analysers', function() {
+      assert.sameMembers(_.pluck(config.analysers("js"), "name"), ["sidekick-js-todos", "sidekick-jscs"]);
+    })
+      
+  })
 
-  });
-
-  describe('negative tests', function() {
-  });
-});
+})
+  
