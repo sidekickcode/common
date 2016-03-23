@@ -21,10 +21,10 @@ exports.load = function(repoPath) /*: RepoConfig */ {
   var filePath = path.join(repoPath, CONFIG_FILENAME);
 
   return fs.readFileAsync(filePath, {encoding: "utf8"})
+  .then((content) => RepoConfig(parse(content || "{}")))
   .catch(function(err){
     return Promise.reject(Error(`.sidekickrc could not be loaded at '${repoPath}': ${err.stack}`));
   })
-  .then((content) => parse(content || "{}"))
 };
 
 /**
@@ -39,36 +39,47 @@ exports.save = function(repoPath, contents) {
   return fs.writeFile(filePath, contentsAsString)
 };
 
+// value object - immutable
+function RepoConfig(conf) {
+  return {
+    includedPaths(paths, language) {
+      // TODO probably faster to | together, not sure right now
+      var excludes = gitignoreParser.compile(conf.exclude.join("\n"));
 
-exports.includedPaths = function includedPaths(conf, paths, language) {
-  // TODO probably faster to | together, not sure right now
-  var excludes = gitignoreParser.compile(conf.exclude.join("\n"));
+      var languageRe = getLanguageFileRe(language);
 
-  var languageRe = getLanguageFileRe(language);
+      return paths.filter(checkPath);
 
-  return paths.filter(checkPath);
+      function checkPath(path) {
+        if(!languageRe.test(path)) {
+          return false;
+        }
 
-  function checkPath(path) {
-    if(!languageRe.test(path)) {
-      return false;
-    }
+        return excludes.accepts(path);
+      }
+    },
 
-    return excludes.accepts(path);
-  }
-};
+    analyserFailsCi(analyser) {
+      return Boolean(analyser.failCiOnError);
+    },
 
-exports.analysers = function(conf, lang) {
-  return conf.languages[lang] || [];
-};
+    languages() {
+      return _.keys(conf.languages);
+    },
 
-exports.analysersByLanguages = function(conf) {
-  return conf.languages;
-};
+    analysers(lang) {
+      return conf.languages[lang] || [];
+    },
 
+    analysersByLanguages() {
+      return conf.languages;
+    },
 
-exports.getAllAnalysers = function(config){
-  return _.flatten(_.values(conf.languages));
-};
+    allAnalysers(){
+      return _.flatten(_.values(conf.languages));
+    },
+  };
+}
 
 function parse(string) {
   if(typeof string !== "string") {

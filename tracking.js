@@ -12,6 +12,8 @@ const universal = require("./universal");
 
 const PREFIX = process.env.DEVELOPMENT ? "debug/" : "";
 
+const debug = require("debug")("tracking");
+
 var clientId;
 var settings = require("./settings");
 var setup = {
@@ -102,7 +104,7 @@ function send(params) {
     if(result.valid) {
       return;
     } else {
-      console.error("could not send analytics", JSON.stringify(result, null, 4));
+      debug("could not send analytics: " + JSON.stringify(result, null, 4));
       throw new Error(JSON.stringify(result.parserMessage));
     }
   });
