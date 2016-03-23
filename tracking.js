@@ -13,11 +13,14 @@ const universal = require("./universal");
 const PREFIX = process.env.DEVELOPMENT ? "debug/" : "";
 
 var clientId;
-var settings;
-
-exports.start = function(setConfig) {
-  settings = setConfig;
+var settings = require("./settings");
+var setup = {
+  version: "unknown",
 };
+
+exports.start = function(setupTo) {
+ setup = setupTo; 
+}
 
 exports.error = function(err) {
   return send({
@@ -80,7 +83,7 @@ function send(params) {
     cid: getClientId(),
     // custom dimensions:
     // cd1 = version
-    cd1: settings.version(),
+    cd1: setup.version,
   }, params);
 
   return sendRequest(`https://www.google-analytics.com/${PREFIX}collect`, {
