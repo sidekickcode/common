@@ -1,6 +1,8 @@
 "use strict";
 const path = require("path");
 
+const assert = require('chai').assert;
+
 const repoConfig = require('../repoConfig');
 const pathToTestRepo = path.join(__dirname, '/fixtures/testRepo');
 const _ = require("lodash");
@@ -9,7 +11,7 @@ describe('RepoConfig', function() {
 
   it('works with empty input without throwing', function() {
     repoConfig.fromString("");
-  })
+  });
 
   it('filters paths', function() {
 
@@ -25,7 +27,7 @@ describe('RepoConfig', function() {
     var filtered = repoConfig.fromString("{}").includedPaths(paths, "py");
 
     assert.deepEqual(filtered, ["qp_xml.py"]);
-  })
+  });
 
   it('does not include binaries', function() {
 
@@ -39,7 +41,7 @@ describe('RepoConfig', function() {
     var filtered = repoConfig.fromString("{}").includedPaths(paths, "js");
 
     assert.deepEqual(filtered, []);
-  })
+  });
 
   it('gives access to analysers', function() {
 
@@ -55,7 +57,22 @@ describe('RepoConfig', function() {
 
     assert.deepEqual(conf.analysers("js"), [jshint]);
     assert.deepEqual(conf.analysers("py"), []);
-  })
+  });
+
+  it('throws error for invalid config - non-object analysers', function() {
+
+    assert.throws(function(){repoConfig.fromString(JSON.stringify({
+      "exclude": [],
+      "languages": {
+        "js": {
+          "analysers": [
+            "eslint"
+          ]
+        }
+      }
+    }))}, Error);
+  });
+
 
   describe('loaded from file', function() {
     var config;

@@ -4,11 +4,12 @@ var Promise = require("bluebird");
 var _ = require('lodash');
 var jsonWithComments = _.compose(JSON.parse, require("strip-json-comments"));
 var Validator = require('jsonschema').Validator;
-var jsonSchema = require('./repoConfig/SidekickSchema.json');
 var gitignoreParser = require("gitignore-parser");
 
 var fs = Promise.promisifyAll(require('fs'));
 var path = require('path');
+
+var jsonSchema = require('./repoConfig/SidekickSchema.json');
 
 var CONFIG_FILENAME = '.sidekickrc';
 
@@ -22,11 +23,11 @@ exports.load = function(repoPath) /*: RepoConfig */ {
   var filePath = path.join(repoPath, CONFIG_FILENAME);
 
   return fs.readFileAsync(filePath, {encoding: "utf8"})
-  .then(exports.fromString)
-  // TODO fallback to default
-  .catch(function(err){
-    return Promise.reject(Error(`.sidekickrc could not be loaded at '${repoPath}': ${err.stack}`));
-  })
+    .then(exports.fromString)
+    // TODO fallback to default
+    .catch(function(err){
+      return Promise.reject(Error(`.sidekickrc could not be loaded at '${repoPath}': ${err.stack}`));
+    })
 };
 
 /**
@@ -112,7 +113,24 @@ function parse(string) {
   var validator = new Validator();
   var validationResult = validator.validate(raw, jsonSchema);
   if(validationResult.errors.length > 0){
-    return Promise.reject('invalid .sidekickrc: ' + JSON.stringify(validationResult.errors, null, 4));
+    throw Error('invalid .sidekickrc: ' + JSON.stringify(validationResult.errors, null, 4));
+  }
+
+  /*json schema currently does not validate the format of additional properties, so do extra validation on the
+    contents of a language - should be objects with a single key (analyserName) and a single value (object)
+  */
+  var throwaway = RepoConfig(raw);
+  var analyserNotObj = _.some(throwaway.allAnalysers(), function(analyser){
+    var notEmpty = _.keys(analyser).length > 0;
+    if(notEmpty){
+      var details = analyser[_.keys(analyser)[0]];
+      return !_.isPlainObject(details);
+    } else {
+      return false;
+    }
+  });
+  if(analyserNotObj){
+    throw Error('Analysers must be objects');
   }
 
   return reformat(raw);
