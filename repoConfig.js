@@ -122,6 +122,7 @@ function getDefault(repoPath) /*: RawConfig */ {
     
     doTodos();
     doEsLint();
+    doJsHint();
 
     //add js-todos
     function doTodos(){
@@ -132,6 +133,12 @@ function getDefault(repoPath) /*: RawConfig */ {
     function doEsLint(){
       if(eslintConfigLoader.hasConfigFile(repoPath)){
         defaultConfig.languages.js['sidekick-eslint'] = {failCiOnError: true};
+      }
+    }
+
+    function doJsHint(){
+      if(fs.statSync(path.join(repoPath, '/.jshintrc'))){
+        defaultConfig.languages.js['sidekick-jshint'] = {failCiOnError: true};
       }
     }
   }

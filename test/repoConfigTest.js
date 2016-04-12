@@ -118,10 +118,10 @@ describe('RepoConfig', function() {
           })
     });
 
-    it('config has non-language specific defaults', function() {
+    it('config has javascript specific defaults', function() {
       assert.sameMembers(_.keys(config.analysers("json")), ["sidekick-david"]);
       assert.sameMembers(_.keys(config.analysers("all")), ["sidekick-security"]);
-      assert.sameMembers(_.keys(config.analysers("js")), ["sidekick-eslint", "sidekick-js-todos"]);
+      assert.sameMembers(_.keys(config.analysers("js")), ["sidekick-eslint", "sidekick-js-todos", "sidekick-jshint"]);
     });
 
     after(function(){
