@@ -1,5 +1,6 @@
 "use strict";
 const path = require("path");
+const fs = require('fs-extra');
 
 const assert = require('chai').assert;
 
@@ -87,7 +88,46 @@ describe('RepoConfig', function() {
       assert.sameMembers(_.pluck(config.analysers("js"), "name"), ["sidekick-js-todos", "sidekick-jscs"]);
     })
       
+  });
+
+  describe('loads defaults', function() {
+    var config;
+    before(function() {
+      return repoConfig.load(path.join(__dirname, '/fixtures/repoWithoutConfig'))
+        .then(function(_config){
+          config = _config;
+        })
+    });
+
+    it('config has non-language specific defaults', function() {
+      assert.sameMembers(_.keys(config.analysers("json")), ["sidekick-david"]);
+      assert.sameMembers(_.keys(config.analysers("all")), ["sidekick-security"]);
+      assert.lengthOf(config.analysers("js"), 0);
+    })
+  });
+
+  describe('loads defaults - for javascript', function() {
+    var config;
+    var repoPath = path.join(__dirname, '/fixtures/repoWithoutConfig');
+    before(function() {
+      var testJS = fs.readFileSync(path.join(__dirname, '/repoConfigTest.js'));
+      fs.writeFile(path.join(repoPath, '/test.js'), testJS);
+      return repoConfig.load(path.join(__dirname, '/fixtures/repoWithoutConfig'))
+          .then(function(_config){
+            config = _config;
+          })
+    });
+
+    it('config has non-language specific defaults', function() {
+      assert.sameMembers(_.keys(config.analysers("json")), ["sidekick-david"]);
+      assert.sameMembers(_.keys(config.analysers("all")), ["sidekick-security"]);
+      assert.sameMembers(_.keys(config.analysers("js")), ["sidekick-eslint", "sidekick-js-todos"]);
+    });
+
+    after(function(){
+      fs.removeSync(path.join(repoPath, '/test.js'));
+    })
   })
 
-})
+});
   

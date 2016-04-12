@@ -9,7 +9,10 @@ var gitignoreParser = require("gitignore-parser");
 var fs = Promise.promisifyAll(require('fs'));
 var path = require('path');
 
+var eslintConfigLoader = require('sidekick-eslint/configLoader');
+
 var jsonSchema = require('./repoConfig/SidekickSchema.json');
+var files = require('./files');
 
 var CONFIG_FILENAME = '.sidekickrc';
 
@@ -23,11 +26,7 @@ exports.load = function(repoPath) /*: RepoConfig */ {
   var filePath = path.join(repoPath, CONFIG_FILENAME);
 
   return fs.readFileAsync(filePath, {encoding: "utf8"})
-    .then(exports.fromString)
-    // TODO fallback to default
-    .catch(function(err){
-      return Promise.reject(Error(`.sidekickrc could not be loaded at '${repoPath}': ${err.stack}`));
-    })
+    .then(exports.fromString, function(){return getDefault(repoPath)})
 };
 
 /**
@@ -92,12 +91,54 @@ function RepoConfig(conf /*: RawConfig */) {
 }
 
 // if we're missing a .sidekickrc, we do the 'right thing' as far as possible
-function getDefault() /*: RawConfig */ {
+function getDefault(repoPath) /*: RawConfig */ {
 
-  // TODO get list of analysers from HTTP
-  // TODO read gitignore
-  // TODO create a raw config and return
-  
+  //build up analysers in config - start with non language specific analysers
+  var defaultConfig = require('./repoConfig/default_sidekickrc.json');
+
+  if(repoHasFilesOfType(repoPath, '.js')){
+    doJs();
+  }
+
+/*  if(repoHasFilesOfType(repoPath, '.ts')){
+    doTs();
+  }*/
+
+/*  if(repoHasFilesOfType(repoPath, '.cs')){
+    doCs();
+  }*/
+
+  return RepoConfig(defaultConfig);
+
+  function repoHasFilesOfType(repoPath, type){
+    return files.findFilesInDir(repoPath, type).length > 0;
+  }
+
+  /**
+   * Add Javascript analysers if we find corresponding config files
+   */
+  function doJs(){
+    defaultConfig.languages.js = {};
+    
+    doTodos();
+    doEsLint();
+
+    //add js-todos
+    function doTodos(){
+      defaultConfig.languages.js['sidekick-js-todos'] = {failCiOnError: false};
+    }
+
+    //add eslint if we find any eslint config
+    function doEsLint(){
+      if(eslintConfigLoader.hasConfigFile(repoPath)){
+        defaultConfig.languages.js['sidekick-eslint'] = {failCiOnError: true};
+      }
+    }
+  }
+
+  //TODO get list of analysers from HTTP
+  //TODO get list of known config files and create analyser entries if required
+  //TODO get list of analyser ignores and add
 }
 
 function parse(string) {

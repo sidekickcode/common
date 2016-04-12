@@ -1,0 +1,15 @@
+{
+  "excludes": [],
+  "languages": {
+    "json": {
+      "sidekick-david": {
+        "failCiOnError": false
+      }
+    },
+    "all": {
+      "sidekick-security": {
+        "failCiOnError": true
+      }
+    }
+  }
+}
