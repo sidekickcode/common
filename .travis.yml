@@ -1,5 +1,12 @@
 language: node_js
+
 node_js:
   - "5.5"
   - "4.2"
-  - "iojs"
+
+script:
+  - npm i sidekick
+  - sidekick run --ci
+
+notifications:
+  slack: we-are-sidekick:GeIT5wtuKMLImpFXYHWzIGzI
