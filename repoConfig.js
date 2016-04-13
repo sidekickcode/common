@@ -13,6 +13,8 @@ var eslintConfigLoader = require('sidekick-eslint/configLoader');
 
 var jsonSchema = require('./repoConfig/SidekickSchema.json');
 var files = require('./files');
+//build up analysers in config - start with non language specific analysers
+const DEFAULT_CONFIG = require('./repoConfig/default_sidekickrc.json');
 
 var CONFIG_FILENAME = '.sidekickrc';
 
@@ -93,20 +95,18 @@ function RepoConfig(conf /*: RawConfig */) {
 // if we're missing a .sidekickrc, we do the 'right thing' as far as possible
 function getDefault(repoPath) /*: RawConfig */ {
 
-  //build up analysers in config - start with non language specific analysers
-  var defaultConfig = require('./repoConfig/default_sidekickrc.json');
-
+  var defaultConfig = _.cloneDeep(DEFAULT_CONFIG);
   if(repoHasFilesOfType(repoPath, '.js')){
     doJs();
   }
 
-/*  if(repoHasFilesOfType(repoPath, '.ts')){
+  if(repoHasFilesOfType(repoPath, '.ts')){
     doTs();
-  }*/
+  }
 
-/*  if(repoHasFilesOfType(repoPath, '.cs')){
+  if(repoHasFilesOfType(repoPath, '.cs')){
     doCs();
-  }*/
+  }
 
   return RepoConfig(defaultConfig);
 
@@ -121,12 +121,18 @@ function getDefault(repoPath) /*: RawConfig */ {
     defaultConfig.languages.js = {};
     
     doTodos();
+    doJscs();
     doEsLint();
     doJsHint();
 
     //add js-todos
     function doTodos(){
       defaultConfig.languages.js['sidekick-js-todos'] = {failCiOnError: false};
+    }
+
+    //add jscs
+    function doJscs(){
+      defaultConfig.languages.js['sidekick-jscs'] = {failCiOnError: false};
     }
 
     //add eslint if we find any eslint config
@@ -137,9 +143,38 @@ function getDefault(repoPath) /*: RawConfig */ {
     }
 
     function doJsHint(){
-      if(fs.statSync(path.join(repoPath, '/.jshintrc'))){
+      try {
+        fs.statSync(path.join(repoPath, '/.jshintrc'));
         defaultConfig.languages.js['sidekick-jshint'] = {failCiOnError: true};
-      }
+      }catch(e){}
+    }
+  }
+
+  function doTs(){
+    defaultConfig.languages.ts = {};
+
+    doTsLint();
+    
+    //add tslint if we find any tslint config
+    function doTsLint(){
+      try {
+        fs.statSync(path.join(repoPath, '/tsconfig.json'));
+        defaultConfig.languages.ts['sidekick-tslint'] = {failCiOnError: true};
+      }catch(e){}
+    }
+  }
+
+  function doCs(){
+    defaultConfig.languages.cs = {};
+
+    doCsLint();
+
+    //add cslint if we find any cslint config
+    function doCsLint(){
+      try {
+        fs.statSync(path.join(repoPath, '/coffeelint.json'));
+        defaultConfig.languages.cs['sidekick-coffeelint'] = {failCiOnError: true};
+      }catch(e){}
     }
   }
 
@@ -180,7 +215,6 @@ function parse(string) {
   if(analyserNotObj){
     throw Error('Analysers must be objects');
   }
-
   return reformat(raw);
 }
 
