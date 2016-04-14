@@ -86,22 +86,31 @@ describe('RepoConfig', function() {
 
     it('gives access to analysers', function() {
       assert.sameMembers(_.pluck(config.analysers("js"), "name"), ["sidekick-js-todos", "sidekick-jscs"]);
-    })
+    });
+
+    it('gives all analysers', function() {
+      assert.equal(config.allAnalysers().length, 3);
+    });
       
   });
 
   describe('loads defaults', function() {
     var config;
+    var repoPath = path.join(__dirname, '/fixtures/repoWithoutConfig');
     before(function() {
-      return repoConfig.load(path.join(__dirname, '/fixtures/repoWithoutConfig'))
+      fs.removeSync(path.join(repoPath, '/test.js'));
+      fs.removeSync(path.join(repoPath, '/test.ts'));
+      fs.removeSync(path.join(repoPath, '/test.cs'));
+      return repoConfig.load(repoPath)
         .then(function(_config){
           config = _config;
         })
     });
 
     it('config has non-language specific defaults', function() {
-      assert.sameMembers(_.keys(config.analysers("json")), ["sidekick-david"]);
-      assert.sameMembers(_.keys(config.analysers("all")), ["sidekick-security"]);
+      assert.equal(config.allAnalysers().length, 2);
+      assert.sameMembers(_.pluck(config.analysers("json"), "name"), ["sidekick-david"]);
+      assert.sameMembers(_.pluck(config.analysers("all"), "name"), ["sidekick-security"]);
       assert.lengthOf(config.analysers("js"), 0);
       assert.lengthOf(config.analysers("ts"), 0);
       assert.lengthOf(config.analysers("cs"), 0);
@@ -113,6 +122,8 @@ describe('RepoConfig', function() {
     var repoPath = path.join(__dirname, '/fixtures/repoWithoutConfig');
 
     before(function() {
+      fs.removeSync(path.join(repoPath, '/test.js'));
+      fs.removeSync(path.join(repoPath, '/test.cs'));
       fs.writeFile(path.join(repoPath, '/test.js'), 'function(){}');
       return repoConfig.load(repoPath)
           .then(function(_config){
@@ -121,9 +132,9 @@ describe('RepoConfig', function() {
     });
 
     it('config has javascript specific defaults', function() {
-      assert.sameMembers(_.keys(config.analysers("json")), ["sidekick-david"]);
-      assert.sameMembers(_.keys(config.analysers("all")), ["sidekick-security"]);
-      assert.sameMembers(_.keys(config.analysers("js")), ["sidekick-eslint", "sidekick-js-todos", "sidekick-jshint", "sidekick-jscs"]);
+      assert.sameMembers(_.pluck(config.analysers("json"), "name"), ["sidekick-david"]);
+      assert.sameMembers(_.pluck(config.analysers("all"), "name"), ["sidekick-security"]);
+      assert.sameMembers(_.pluck(config.analysers("js"), "name"), ["sidekick-eslint", "sidekick-js-todos", "sidekick-jshint", "sidekick-jscs"]);
       assert.lengthOf(config.analysers("ts"), 0);
       assert.lengthOf(config.analysers("cs"), 0);
     });
@@ -136,6 +147,7 @@ describe('RepoConfig', function() {
 
     before(function() {
       fs.removeSync(path.join(repoPath, '/test.js'));
+      fs.removeSync(path.join(repoPath, '/test.cs'));
       fs.writeFile(path.join(repoPath, '/test.ts'), 'function(){}');
       return repoConfig.load(repoPath)
         .then(function(_config){
@@ -144,9 +156,9 @@ describe('RepoConfig', function() {
     });
 
     it('config has typescript specific defaults', function() {
-      assert.sameMembers(_.keys(config.analysers("json")), ["sidekick-david"]);
-      assert.sameMembers(_.keys(config.analysers("all")), ["sidekick-security"]);
-      assert.sameMembers(_.keys(config.analysers("ts")), ["sidekick-tslint"]);
+      assert.sameMembers(_.pluck(config.analysers("json"), "name"), ["sidekick-david"]);
+      assert.sameMembers(_.pluck(config.analysers("all"), "name"), ["sidekick-security"]);
+      assert.sameMembers(_.pluck(config.analysers("ts"), "name"), ["sidekick-tslint"]);
       assert.lengthOf(config.analysers("js"), 0);
       assert.lengthOf(config.analysers("cs"), 0);
     });
@@ -161,6 +173,7 @@ describe('RepoConfig', function() {
     var repoPath = path.join(__dirname, '/fixtures/repoWithoutConfig');
 
     before(function() {
+      fs.removeSync(path.join(repoPath, '/test.js'));
       fs.removeSync(path.join(repoPath, '/test.ts'));
       fs.writeFile(path.join(repoPath, '/test.cs'), 'function(){}');
       return repoConfig.load(repoPath)
@@ -170,15 +183,15 @@ describe('RepoConfig', function() {
     });
 
     it('config has coffeescript specific defaults', function() {
-      assert.sameMembers(_.keys(config.analysers("json")), ["sidekick-david"]);
-      assert.sameMembers(_.keys(config.analysers("all")), ["sidekick-security"]);
-      assert.sameMembers(_.keys(config.analysers("cs")), ["sidekick-coffeelint"]);
+      assert.sameMembers(_.pluck(config.analysers("json"), "name"), ["sidekick-david"]);
+      assert.sameMembers(_.pluck(config.analysers("all"), "name"), ["sidekick-security"]);
+      assert.sameMembers(_.pluck(config.analysers("cs"), "name"), ["sidekick-coffeelint"]);
       assert.lengthOf(config.analysers("js"), 0);
       assert.lengthOf(config.analysers("ts"), 0);
     });
 
     after(function(){
-      fs.removeSync(path.join(repoPath, '/test.cs'));
+      fs.removeSync(path.join(repoPath, '/test.ts'));
     })
   })
 

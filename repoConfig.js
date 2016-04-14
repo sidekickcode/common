@@ -94,7 +94,7 @@ function RepoConfig(conf /*: RawConfig */) {
 
 // if we're missing a .sidekickrc, we do the 'right thing' as far as possible
 function getDefault(repoPath) /*: RawConfig */ {
-
+  
   var defaultConfig = _.cloneDeep(DEFAULT_CONFIG);
   if(repoHasFilesOfType(repoPath, '.js')){
     doJs();
@@ -108,7 +108,7 @@ function getDefault(repoPath) /*: RawConfig */ {
     doCs();
   }
 
-  return RepoConfig(defaultConfig);
+  return RepoConfig(reformat(defaultConfig));
 
   function repoHasFilesOfType(repoPath, type){
     return files.findFilesInDir(repoPath, type).length > 0;
