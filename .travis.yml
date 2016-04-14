@@ -5,6 +5,7 @@ node_js:
   - "4.2"
 
 install:
+  - npm i
   - npm i sidekick
 
 script:
