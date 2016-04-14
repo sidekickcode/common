@@ -6,7 +6,9 @@ node_js:
 
 script:
   - npm i sidekick
+  - sidekick -v
   - sidekick run --ci
 
 notifications:
+  email: false
   slack: we-are-sidekick:GeIT5wtuKMLImpFXYHWzIGzI
