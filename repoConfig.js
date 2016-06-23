@@ -5,6 +5,7 @@ var _ = require('lodash');
 var jsonWithComments = _.compose(JSON.parse, require("strip-json-comments"));
 var Validator = require('jsonschema').Validator;
 var gitignoreParser = require("gitignore-parser");
+const EventEmitter = require('events').EventEmitter;
 
 var fs = Promise.promisifyAll(require('fs'));
 var path = require('path');
@@ -20,6 +21,9 @@ var CONFIG_FILENAME = '.sidekickrc';
 
 // TODO add gitignore to excludes
 
+exports.events = new EventEmitter;
+
+
 /**
  * Load config data from .sidekickrc file
  * @param repoPath the abs file path of the config file.
@@ -28,7 +32,12 @@ exports.load = function(repoPath) /*: RepoConfig */ {
   var filePath = path.join(repoPath, CONFIG_FILENAME);
 
   return fs.readFileAsync(filePath, {encoding: "utf8"})
-    .then(exports.fromString, function(){return getDefault(repoPath)})
+      .then(exports.fromString, function(){
+        exports.events.emit('message', 'No .sidekickrc file found in this repo.');
+        exports.events.emit('message', 'Will run default analysers (security and dependencies).');
+        exports.events.emit('message', 'Parsing repo contents to determine which other analysers to run..');
+        return getDefault(repoPath)
+      });
 };
 
 /**
@@ -94,21 +103,24 @@ function RepoConfig(conf /*: RawConfig */) {
 
 // if we're missing a .sidekickrc, we do the 'right thing' as far as possible
 function getDefault(repoPath) /*: RawConfig */ {
-  
+
   var defaultConfig = _.cloneDeep(DEFAULT_CONFIG);
   if(repoHasFilesOfType(repoPath, '.js')){
+    exports.events.emit('message', 'JavaScript files found in this repo.');
     doJs();
   }
 
   if(repoHasFilesOfType(repoPath, '.ts')){
+    exports.events.emit('message', 'TypeScript files found in this repo.');
     doTs();
   }
 
   if(repoHasFilesOfType(repoPath, '.cs')){
+    exports.events.emit('message', 'CoffeeScript files found in this repo.');
     doCs();
   }
 
-  return RepoConfig(reformat(defaultConfig));
+  return RepoConfig(parse(JSON.stringify(defaultConfig)));  //so that analysers get mutated
 
   function repoHasFilesOfType(repoPath, type){
     return files.findFilesInDir(repoPath, type).length > 0;
@@ -119,7 +131,7 @@ function getDefault(repoPath) /*: RawConfig */ {
    */
   function doJs(){
     defaultConfig.languages.js = {};
-    
+
     doTodos();
     doJscs();
     doEsLint();
@@ -127,17 +139,20 @@ function getDefault(repoPath) /*: RawConfig */ {
 
     //add js-todos
     function doTodos(){
+      exports.events.emit('message', '  Adding js-todos analyser.');
       defaultConfig.languages.js['sidekick-js-todos'] = {failCiOnError: false};
     }
 
     //add jscs
     function doJscs(){
+      exports.events.emit('message', '  Adding jscs analyser.');
       defaultConfig.languages.js['sidekick-jscs'] = {failCiOnError: false};
     }
 
     //add eslint if we find any eslint config
     function doEsLint(){
       if(eslintConfigLoader.hasConfigFile(repoPath)){
+        exports.events.emit('message', '  eslint config file found - adding eslint analyser.');
         defaultConfig.languages.js['sidekick-eslint'] = {failCiOnError: true};
       }
     }
@@ -145,6 +160,7 @@ function getDefault(repoPath) /*: RawConfig */ {
     function doJsHint(){
       try {
         fs.statSync(path.join(repoPath, '/.jshintrc'));
+        exports.events.emit('message', '  jshint config file found - adding jshint analyser.');
         defaultConfig.languages.js['sidekick-jshint'] = {failCiOnError: true};
       }catch(e){}
     }
@@ -154,11 +170,12 @@ function getDefault(repoPath) /*: RawConfig */ {
     defaultConfig.languages.ts = {};
 
     doTsLint();
-    
+
     //add tslint if we find any tslint config
     function doTsLint(){
       try {
         fs.statSync(path.join(repoPath, '/tsconfig.json'));
+        exports.events.emit('message', '  tslint config file found - adding tslint analyser.');
         defaultConfig.languages.ts['sidekick-tslint'] = {failCiOnError: true};
       }catch(e){}
     }
@@ -173,6 +190,7 @@ function getDefault(repoPath) /*: RawConfig */ {
     function doCsLint(){
       try {
         fs.statSync(path.join(repoPath, '/coffeelint.json'));
+        exports.events.emit('message', '  coffeelint config file found - adding coffeelint analyser.');
         defaultConfig.languages.cs['sidekick-coffeelint'] = {failCiOnError: true};
       }catch(e){}
     }
@@ -200,8 +218,8 @@ function parse(string) {
   }
 
   /*json schema currently does not validate the format of additional properties, so do extra validation on the
-    contents of a language - should be objects with a single key (analyserName) and a single value (object)
-  */
+   contents of a language - should be objects with a single key (analyserName) and a single value (object)
+   */
   var throwaway = RepoConfig(raw);
   var analyserNotObj = _.some(throwaway.allAnalysers(), function(analyser){
     var notEmpty = _.keys(analyser).length > 0;
