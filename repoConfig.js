@@ -23,7 +23,6 @@ var CONFIG_FILENAME = '.sidekickrc';
 
 exports.events = new EventEmitter;
 
-
 /**
  * Load config data from .sidekickrc file
  * @param repoPath the abs file path of the config file.
@@ -151,10 +150,15 @@ function getDefault(repoPath) /*: RawConfig */ {
 
     //add eslint if we find any eslint config
     function doEsLint(){
-      if(eslintConfigLoader.hasConfigFile(repoPath)){
-        exports.events.emit('message', '  eslint config file found - adding eslint analyser.');
-        defaultConfig.languages.js['sidekick-eslint'] = {failCiOnError: true};
-      }
+      eslintConfigLoader.hasConfigFile(repoPath)
+        .then((hasEslintConfig) => {
+          if(hasEslintConfig){
+            exports.events.emit('message', '  eslint config file found - adding eslint analyser.');
+            defaultConfig.languages.js['sidekick-eslint'] = {failCiOnError: true};
+          } else {
+            exports.events.emit('message', '  eslint config file not found.');
+          }
+        });
     }
 
     function doJsHint(){
@@ -162,7 +166,9 @@ function getDefault(repoPath) /*: RawConfig */ {
         fs.statSync(path.join(repoPath, '/.jshintrc'));
         exports.events.emit('message', '  jshint config file found - adding jshint analyser.');
         defaultConfig.languages.js['sidekick-jshint'] = {failCiOnError: true};
-      }catch(e){}
+      }catch(e){
+        exports.events.emit('message', '  jshint config file not found.');
+      }
     }
   }
 
@@ -177,7 +183,9 @@ function getDefault(repoPath) /*: RawConfig */ {
         fs.statSync(path.join(repoPath, '/tsconfig.json'));
         exports.events.emit('message', '  tslint config file found - adding tslint analyser.');
         defaultConfig.languages.ts['sidekick-tslint'] = {failCiOnError: true};
-      }catch(e){}
+      }catch(e){
+        exports.events.emit('message', '  tslint config file not found.');
+      }
     }
   }
 
@@ -192,7 +200,9 @@ function getDefault(repoPath) /*: RawConfig */ {
         fs.statSync(path.join(repoPath, '/coffeelint.json'));
         exports.events.emit('message', '  coffeelint config file found - adding coffeelint analyser.');
         defaultConfig.languages.cs['sidekick-coffeelint'] = {failCiOnError: true};
-      }catch(e){}
+      }catch(e){
+        exports.events.emit('message', '  coffeelint config file not found.');
+      }
     }
   }
 
