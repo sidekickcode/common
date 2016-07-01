@@ -88,9 +88,7 @@ function send(params) {
     cd1: setup.version,
   }, params);
 
-  return sendRequest(`https://www.google-analytics.com/${PREFIX}collect`, {
-    params: completeParams,
-  })
+  return sendRequest(`https://www.google-analytics.com/${PREFIX}collect`, completeParams)
   // the production measurement API does not supply error codes,
   // so only errors we get in production are connect issues (I guess)
   .then(function(res) {
@@ -154,12 +152,20 @@ function cleansedStackTrack(err) {
     .slice(0, 150);
 }
 
-function sendRequest(url, config) {
+function sendRequest(url, queryParams) {
   if(universal.isRenderer()) {
-    const ng = require("../browser/src/core/ngExpose");
-    return ng.$http.get(url, config);
+    const url = new URL(url);
+    _.each(queryParams, function(v, k) {
+      url.searchParams.append(k, v); 
+    });
+
+    return fetch(url)
+      .then(function(resp) {
+        return resp.json();
+      });
+
   } else {
     const axios = require("axios");
-    return axios.get(url, config);
+    return axios.get(url, { params: queryParams });
   }
 }
