@@ -37,17 +37,7 @@ exports.proxyMany = function proxyMany(source/*: EventEmitter */, target/*: Even
   mapping = _.clone(mapping);
 
   var cleanup = _.map(mapping, function(newEvent, original) {
-    newEvent = newEvent == null ? original : newEvent;
-
-    source.addListener(original, handle);
-
-    return function() {
-      source.removeListener(original, handle);
-    };
-
-    function handle() {
-      target.emit.apply(target, [newEvent].concat(_.slice(arguments)));
-    }
+    return exports.proxy(source, target, original, newEvent);
   });
 
   return function() {
@@ -57,7 +47,7 @@ exports.proxyMany = function proxyMany(source/*: EventEmitter */, target/*: Even
   };
 }
 
-exports.proxyAll = function proxyMany(source/*: EventEmitter */, target/*: EventEmitter */, prefix/*: null|string */) /*: cleanupFunction */ {
+exports.proxyAll = function proxyAll(source/*: EventEmitter */, target/*: EventEmitter */, prefix/*: null|string */) /*: cleanupFunction */ {
 
   var deproxied = false;
 
