@@ -10,8 +10,6 @@ const EventEmitter = require('events').EventEmitter;
 var fs = Promise.promisifyAll(require('fs'));
 var path = require('path');
 
-var eslintConfigLoader = require('sidekick-eslint/configLoader');
-
 var jsonSchema = require('./repoConfig/SidekickSchema.json');
 var files = require('./files');
 //build up analysers in config - start with non language specific analysers
@@ -150,15 +148,12 @@ function getDefault(repoPath) /*: RawConfig */ {
 
     //add eslint if we find any eslint config
     function doEsLint(){
-      eslintConfigLoader.hasConfigFile(repoPath)
-        .then((hasEslintConfig) => {
-          if(hasEslintConfig){
-            exports.events.emit('message', '  eslint config file found - adding eslint analyser.');
-            defaultConfig.languages.js['sidekick-eslint'] = {failCiOnError: true};
-          } else {
-            exports.events.emit('message', '  eslint config file not found.');
-          }
-        });
+      if(isEsLintConfig(repoPath)){
+        exports.events.emit('message', '  eslint config file found - adding eslint analyser.');
+        defaultConfig.languages.js['sidekick-eslint'] = {failCiOnError: true};
+      } else {
+        exports.events.emit('message', '  eslint config file not found. Will not run eslint.');
+      }
     }
 
     function doJsHint(){
@@ -167,7 +162,7 @@ function getDefault(repoPath) /*: RawConfig */ {
         exports.events.emit('message', '  jshint config file found - adding jshint analyser.');
         defaultConfig.languages.js['sidekick-jshint'] = {failCiOnError: true};
       }catch(e){
-        exports.events.emit('message', '  jshint config file not found.');
+        exports.events.emit('message', '  jshint config file not found. Will not run jshint.');
       }
     }
   }
@@ -184,7 +179,7 @@ function getDefault(repoPath) /*: RawConfig */ {
         exports.events.emit('message', '  tslint config file found - adding tslint analyser.');
         defaultConfig.languages.ts['sidekick-tslint'] = {failCiOnError: true};
       }catch(e){
-        exports.events.emit('message', '  tslint config file not found.');
+        exports.events.emit('message', '  tslint config file not found. Will not run tslint.');
       }
     }
   }
@@ -201,7 +196,7 @@ function getDefault(repoPath) /*: RawConfig */ {
         exports.events.emit('message', '  coffeelint config file found - adding coffeelint analyser.');
         defaultConfig.languages.cs['sidekick-coffeelint'] = {failCiOnError: true};
       }catch(e){
-        exports.events.emit('message', '  coffeelint config file not found.');
+        exports.events.emit('message', '  coffeelint config file not found. Will not run coffeelint.');
       }
     }
   }
@@ -209,6 +204,46 @@ function getDefault(repoPath) /*: RawConfig */ {
   //TODO get list of analysers from HTTP
   //TODO get list of known config files and create analyser entries if required
   //TODO get list of analyser ignores and add
+}
+
+exports._eslintConfigExists = isEsLintConfig;
+function isEsLintConfig(repoPath){
+
+  const CONFIG_FILES = [
+    ".eslintrc.js",
+    ".eslintrc.yaml",
+    ".eslintrc.yml",
+    ".eslintrc.json",
+    ".eslintrc",
+    "package.json"
+  ];
+
+  return getFilenameForDirectory(repoPath) !== null;
+
+  /**
+   * Retrieves the configuration filename for a given directory. It loops over all
+   * of the valid configuration filenames in order to find the first one that exists.
+   * @param {string} directory The directory to check for a config file.
+   * @returns {?string} The filename of the configuration file for the directory
+   *      or null if there is no configuration file in the directory.
+   */
+  function getFilenameForDirectory(directory) {
+
+    var filename;
+
+    for (var i = 0, len = CONFIG_FILES.length; i < len; i++) {
+      filename = path.join(directory, CONFIG_FILES[i]);
+      if (fs.existsSync(filename)) {
+        if(_.endsWith(filename, 'package.json')){
+          const config = jsonWithComments(fs.readFileSync(filename, {encoding: 'utf8'}));
+          return config.eslintConfig ? filename : null;
+        } else {
+          return filename;
+        }
+      }
+    }
+    return null;
+  }
 }
 
 function parse(string) {
