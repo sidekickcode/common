@@ -1,6 +1,6 @@
 {
   "name": "@sidekick/common",
-  "version": "3.3.5",
+  "version": "3.3.6",
   "description": "helpers shared by the releasable artefacts we ship - cli and main.",
   "main": "sidekick-common.js",
   "directories": {
