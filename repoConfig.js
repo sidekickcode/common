@@ -95,6 +95,10 @@ function RepoConfig(conf /*: RawConfig */) {
     allAnalysers(){
       return _.flatten(_.values(conf.languages));
     },
+
+    getContents(){
+      return JSON.stringify(conf);
+    },
   };
 }
 
@@ -142,8 +146,13 @@ function getDefault(repoPath) /*: RawConfig */ {
 
     //add jscs
     function doJscs(){
-      exports.events.emit('message', '  Adding jscs analyser.');
-      defaultConfig.languages.js['sidekick-jscs'] = {failCiOnError: false};
+      try {
+        fs.statSync(path.join(repoPath, '/.jscsrc'));
+        exports.events.emit('message', '  jscs config file found - adding jscs analyser.');
+        defaultConfig.languages.js['sidekick-jscs'] = {failCiOnError: false};
+      }catch(e){
+        exports.events.emit('message', '  jscs config file not found. Will not run jscs.');
+      }
     }
 
     //add eslint if we find any eslint config
