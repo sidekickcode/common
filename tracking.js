@@ -105,6 +105,10 @@ function send(params) {
       debug("could not send analytics: " + JSON.stringify(result, null, 4));
       throw new Error(JSON.stringify(result.parserMessage));
     }
+  })
+  .catch(function(e) {
+    // nothing too problematic if we can't send analytics
+    debug("failed to send analytics: " + e.message);
   });
 }
 
