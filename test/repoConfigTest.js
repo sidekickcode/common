@@ -195,5 +195,25 @@ describe('RepoConfig', function() {
     })
   })
 
+  describe('creates valid defaults file', function() {
+    var config;
+    var repoPath = path.join(__dirname, '/fixtures/repoWithoutConfig');
+
+    before(function() {
+      fs.removeSync(path.join(repoPath, '/test.js'));
+      fs.removeSync(path.join(repoPath, '/test.ts'));
+      fs.removeSync(path.join(repoPath, '/test.cs'));
+      return repoConfig.load(repoPath)
+          .then(function(_config){
+            config = _config;
+          })
+    });
+
+    it('getContents returns a valid repoConfig', function() {
+      const fileContents = config.getContents();
+      assert.doesNotThrow(function (){repoConfig.fromString(fileContents)}, Error, 'parse does not throw');
+    })
+  });
+
 });
   

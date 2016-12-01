@@ -97,7 +97,18 @@ function RepoConfig(conf /*: RawConfig */) {
     },
 
     getContents(){
-      return JSON.stringify(conf);
+      let copyConf = _.cloneDeep(conf);
+      //analysers are stored in an array (per language). These need to be converted into kv before returning
+      _.each(copyConf.languages, function(analysersForLang, lang){
+        if(analysersForLang.length){
+          let obj = {}
+          _.each(analysersForLang, function(analyser){
+            obj[analyser.name] = {"failCiOnError" : analyser.failCiOnError};
+          });
+          copyConf.languages[lang] = obj;
+        }
+      });
+      return JSON.stringify(copyConf);
     },
   };
 }
@@ -121,7 +132,8 @@ function getDefault(repoPath) /*: RawConfig */ {
     doCs();
   }
 
-  return RepoConfig(parse(JSON.stringify(defaultConfig)));  //so that analysers get mutated
+  const parsedDefaultConfig = parse(JSON.stringify(defaultConfig)); //so that analysers get mutated
+  return RepoConfig(parsedDefaultConfig);
 
   function repoHasFilesOfType(repoPath, type){
     return files.findFilesInDir(repoPath, type).length > 0;
